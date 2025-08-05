@@ -50,6 +50,14 @@ class OverlayService : Service() {
                 Log.d("WritingAssistant", "Received hide_bubble action")
                 hideOverlay()
             }
+            "toggle_bubble" -> {
+                Log.d("WritingAssistant", "Received toggle_bubble action")
+                if (isOverlayVisible) {
+                    hideOverlay()
+                } else {
+                    showOverlay()
+                }
+            }
         }
         
         return START_STICKY
@@ -99,7 +107,8 @@ class OverlayService : Service() {
                 } else {
                     WindowManager.LayoutParams.TYPE_PHONE
                 },
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
                 PixelFormat.TRANSLUCENT
             ).apply {
                 gravity = Gravity.TOP or Gravity.START
@@ -114,12 +123,12 @@ class OverlayService : Service() {
             // Set up click listeners
             overlayView?.findViewById<View>(R.id.btn_check)?.setOnClickListener {
                 Log.d("WritingAssistant", "Check button clicked")
-                hideOverlay()
+                // Don't hide immediately, let user continue typing
             }
 
             overlayView?.findViewById<View>(R.id.btn_fix)?.setOnClickListener {
                 Log.d("WritingAssistant", "Fix button clicked")
-                hideOverlay()
+                // Don't hide immediately, let user continue typing
             }
 
             overlayView?.findViewById<View>(R.id.btn_close)?.setOnClickListener {

@@ -40,6 +40,14 @@ class MainActivity: FlutterActivity() {
                     val isEnabled = isAccessibilityServiceEnabled()
                     result.success(isEnabled)
                 }
+                "openAccessibilitySettings" -> {
+                    openAccessibilitySettings()
+                    result.success(null)
+                }
+                "isOverlayVisible" -> {
+                    val isVisible = isOverlayVisible()
+                    result.success(isVisible)
+                }
                 else -> {
                     result.notImplemented()
                 }
@@ -87,5 +95,16 @@ class MainActivity: FlutterActivity() {
         val enabledServices = Settings.Secure.getString(contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES) ?: ""
         val serviceName = "$packageName/.TextAccessibilityService"
         return enabledServices.contains(serviceName)
+    }
+
+    private fun openAccessibilitySettings() {
+        val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+        startActivity(intent)
+    }
+
+    private fun isOverlayVisible(): Boolean {
+        // This would need to be implemented with a way to communicate with the service
+        // For now, we'll return a default value
+        return false
     }
 }
