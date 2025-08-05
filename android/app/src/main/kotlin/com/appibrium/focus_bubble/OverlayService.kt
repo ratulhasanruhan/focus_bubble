@@ -90,50 +90,50 @@ class OverlayService : Service() {
 
     private fun showOverlay() {
         Log.d("WritingAssistant", "showOverlay() called, isOverlayVisible: $isOverlayVisible")
-        if (isOverlayVisible) {
-            Log.d("WritingAssistant", "Overlay already visible, skipping")
-            return
-        }
 
         try {
-            overlayView = LayoutInflater.from(this).inflate(R.layout.overlay_bubble, null)
-            Log.d("WritingAssistant", "Overlay view inflated successfully")
-            
-            val params = WindowManager.LayoutParams(
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-                } else {
-                    WindowManager.LayoutParams.TYPE_PHONE
-                },
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
-                PixelFormat.TRANSLUCENT
-            ).apply {
-                gravity = Gravity.TOP or Gravity.START
-                x = 100
-                y = 200
-            }
+            if (overlayView == null) {
+                overlayView = LayoutInflater.from(this).inflate(R.layout.overlay_bubble, null)
+                Log.d("WritingAssistant", "Overlay view inflated successfully")
+                
+                val params = WindowManager.LayoutParams(
+                    WindowManager.LayoutParams.WRAP_CONTENT,
+                    WindowManager.LayoutParams.WRAP_CONTENT,
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+                    } else {
+                        WindowManager.LayoutParams.TYPE_PHONE
+                    },
+                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+                    PixelFormat.TRANSLUCENT
+                ).apply {
+                    gravity = Gravity.TOP or Gravity.START
+                    x = 100
+                    y = 200
+                }
 
-            windowManager?.addView(overlayView, params)
-            isOverlayVisible = true
-            Log.d("WritingAssistant", "Overlay added to window manager successfully")
+                windowManager?.addView(overlayView, params)
+                isOverlayVisible = true
+                Log.d("WritingAssistant", "Overlay added to window manager successfully")
+                
+                // Set up click listeners only when creating new overlay
+                overlayView?.findViewById<View>(R.id.btn_check)?.setOnClickListener {
+                    Log.d("WritingAssistant", "Check button clicked")
+                    // Don't hide immediately, let user continue typing
+                }
 
-            // Set up click listeners
-            overlayView?.findViewById<View>(R.id.btn_check)?.setOnClickListener {
-                Log.d("WritingAssistant", "Check button clicked")
-                // Don't hide immediately, let user continue typing
-            }
+                overlayView?.findViewById<View>(R.id.btn_fix)?.setOnClickListener {
+                    Log.d("WritingAssistant", "Fix button clicked")
+                    // Don't hide immediately, let user continue typing
+                }
 
-            overlayView?.findViewById<View>(R.id.btn_fix)?.setOnClickListener {
-                Log.d("WritingAssistant", "Fix button clicked")
-                // Don't hide immediately, let user continue typing
-            }
-
-            overlayView?.findViewById<View>(R.id.btn_close)?.setOnClickListener {
-                Log.d("WritingAssistant", "Close button clicked")
-                hideOverlay()
+                overlayView?.findViewById<View>(R.id.btn_close)?.setOnClickListener {
+                    Log.d("WritingAssistant", "Close button clicked")
+                    hideOverlay()
+                }
+            } else {
+                Log.d("WritingAssistant", "Overlay already exists, keeping it stable")
             }
         } catch (e: Exception) {
             Log.e("WritingAssistant", "Error showing overlay: ${e.message}")
