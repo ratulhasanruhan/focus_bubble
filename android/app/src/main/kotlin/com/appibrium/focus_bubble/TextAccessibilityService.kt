@@ -19,9 +19,7 @@ class TextAccessibilityService : AccessibilityService() {
         hideHandler = android.os.Handler(android.os.Looper.getMainLooper())
         
         val info = AccessibilityServiceInfo().apply {
-            eventTypes = AccessibilityEvent.TYPE_VIEW_FOCUSED or
-                        AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED or
-                        AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
+            eventTypes = AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED
             feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC
             flags = AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS
             notificationTimeout = 50
@@ -39,35 +37,30 @@ class TextAccessibilityService : AccessibilityService() {
                 AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED -> {
                     Log.d("WritingAssistant", "Text change event detected")
                     if (isTextField(event)) {
-                        Log.d("WritingAssistant", "User is typing - showing bubble")
+                        Log.d("WritingAssistant", "User is typing - showing bubble with delay")
                         showBubbleWithDelay()
                     }
-                }
-                AccessibilityEvent.TYPE_VIEW_FOCUSED -> {
-                    Log.d("WritingAssistant", "Focus event detected")
-                    if (isTextField(event)) {
-                        Log.d("WritingAssistant", "Text field focused - showing bubble")
-                        showBubbleWithDelay()
-                    }
-                }
-                AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED -> {
-                    Log.d("WritingAssistant", "Window state changed - hiding bubble")
-                    cancelHideTimer()
-                    hideBubble()
                 }
             }
         }
     }
 
     private fun showBubbleWithDelay() {
-        // Show bubble immediately
-        val intent = Intent(this, OverlayService::class.java)
-        intent.putExtra("action", "show_bubble")
-        startService(intent)
-        Log.d("WritingAssistant", "Bubble shown")
-        
-        // Start/restart hide timer
-        startHideTimer()
+        try {
+            // Show bubble immediately
+            val intent = Intent(this, OverlayService::class.java)
+            intent.putExtra("action", "show_bubble")
+            startService(intent)
+            Log.d("WritingAssistant", "Bubble shown")
+            
+            // Simple delayed hide without complex timer logic
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                Log.d("WritingAssistant", "Hiding bubble after delay")
+                hideBubble()
+            }, HIDE_DELAY)
+        } catch (e: Exception) {
+            Log.e("WritingAssistant", "Error in showBubbleWithDelay: ${e.message}")
+        }
     }
 
     private fun showBubble() {
@@ -84,32 +77,8 @@ class TextAccessibilityService : AccessibilityService() {
         Log.d("WritingAssistant", "Bubble hidden")
     }
 
-    private fun startHideTimer() {
-        cancelHideTimer() // Cancel any existing timer
-        hideRunnable = Runnable {
-            Log.d("WritingAssistant", "Hide timer expired - hiding bubble")
-            hideBubble()
-        }
-        hideHandler?.postDelayed(hideRunnable!!, HIDE_DELAY)
-        Log.d("WritingAssistant", "Hide timer started with ${HIDE_DELAY}ms delay")
-    }
-
-    private fun cancelHideTimer() {
-        hideRunnable?.let {
-            hideHandler?.removeCallbacks(it)
-            hideRunnable = null
-            Log.d("WritingAssistant", "Hide timer cancelled")
-        }
-    }
-
     override fun onInterrupt() {
         Log.d("WritingAssistant", "Accessibility Service Interrupted")
-        cancelHideTimer()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        cancelHideTimer()
     }
 
     private fun getFieldIdentifier(event: AccessibilityEvent): String {
