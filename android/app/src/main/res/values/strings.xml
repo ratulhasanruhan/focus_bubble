@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Writing Assistant</string>
+    <string name="accessibility_service_description">This service detects when you focus on text fields in other apps and shows writing assistance bubbles.</string>
+</resources> 
